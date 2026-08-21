@@ -1,0 +1,90 @@
+.falling-flowers {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.falling-flower {
+  position: absolute;
+  top: -24px;
+  left: var(--left);
+  width: var(--size);
+  height: var(--size);
+  opacity: 0;
+  transform: rotate(var(--rotation));
+  animation: fallingFlower var(--duration) linear var(--delay) infinite;
+  will-change: transform, opacity;
+}
+
+.falling-flower__petal,
+.falling-flower__center {
+  position: absolute;
+  display: block;
+}
+
+.falling-flower__petal {
+  width: 58%;
+  height: 80%;
+  left: 21%;
+  top: 10%;
+  border-radius: 70% 35% 70% 35%;
+  background: linear-gradient(135deg, rgba(232,160,191,.72), rgba(194,82,122,.48));
+  filter: blur(.1px);
+}
+
+.falling-flower__petal--1 { transform: rotate(0deg) translateY(-48%); }
+.falling-flower__petal--2 { transform: rotate(90deg) translateY(-48%); }
+.falling-flower__petal--3 { transform: rotate(180deg) translateY(-48%); }
+.falling-flower__petal--4 { transform: rotate(270deg) translateY(-48%); }
+
+.falling-flower__center {
+  width: 26%;
+  height: 26%;
+  left: 37%;
+  top: 37%;
+  border-radius: 50%;
+  background: rgba(155,89,182,.62);
+  box-shadow: 0 0 8px rgba(232,160,191,.28);
+}
+
+@keyframes fallingFlower {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -20px, 0) rotate(var(--rotation));
+  }
+  8% {
+    opacity: .72;
+  }
+  48% {
+    transform: translate3d(var(--drift), 50vh, 0) rotate(calc(var(--rotation) + 170deg));
+  }
+  88% {
+    opacity: .5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--drift) * -1), 108vh, 0) rotate(calc(var(--rotation) + 360deg));
+  }
+}
+
+:root[data-theme="dark"] .falling-flower__petal {
+  background: linear-gradient(135deg, rgba(240,138,181,.6), rgba(194,82,122,.34));
+}
+
+:root[data-theme="dark"] .falling-flower__center {
+  background: rgba(212,154,187,.58);
+}
+
+@media (max-width: 700px) {
+  .falling-flowers {
+    opacity: .72;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .falling-flowers {
+    display: none;
+  }
+}
