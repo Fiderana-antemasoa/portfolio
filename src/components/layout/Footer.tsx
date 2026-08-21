@@ -1,4 +1,5 @@
 import './Footer.css'
+import FallingFlowers from './FallingFlowers'
 
 export default function Footer() {
   const scrollToTop = (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -8,6 +9,7 @@ export default function Footer() {
 
   return (
     <footer className="footer">
+      <FallingFlowers />
       <div className="footer__inner">
         <div className="footer__line">
           <p className="footer__back">
