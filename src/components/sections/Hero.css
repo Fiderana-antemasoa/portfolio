@@ -305,3 +305,16 @@
   .hero__avatar { width: 110px; height: 110px; }
   .hero__avatar-initials { font-size: 1.6rem; }
 }
+.hero__avatar {
+  /* garde tes styles existants : width, height, border-radius, etc. */
+  overflow: hidden; /* important pour que l'image respecte le cercle */
+}
+
+.hero__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* évite que la photo soit déformée */
+  object-position: center;
+  border-radius: 50%;  /* si .hero__avatar n'est pas déjà rond */
+  display: block;
+}

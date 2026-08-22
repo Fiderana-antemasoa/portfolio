@@ -16,7 +16,7 @@ export default function Experience() {
 {experiences.map((exp: { id: number; company: string; role: string; period: string; description: string }, i) => (            <div
               key={exp.id}
               className="exp-item reveal"
-              style={{ transitionDelay: `${i * 0.15}s` }}
+             style={{ transitionDelay: `${i * 0.12}s` }}
             >
               <div className="exp-item__line">
                 <div className="exp-item__dot" />

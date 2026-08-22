@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Intro from './components/Intro'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
@@ -13,10 +13,19 @@ import './App.css'
 
 export default function App() {
   const [introComplete, setIntroComplete] = useState(false)
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem('portfolio-theme') === 'dark'
+  })
 
   const handleIntroComplete = useCallback(() => {
     setIntroComplete(true)
   }, [])
+
+  useEffect(() => {
+    const theme = isDark ? 'dark' : 'light'
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem('portfolio-theme', theme)
+  }, [isDark])
 
   useScrollReveal()
 
@@ -28,10 +37,10 @@ export default function App() {
         className={`app ${introComplete ? 'app--visible' : ''}`}
         aria-hidden={!introComplete}
       >
-        <Navbar />
+        <Navbar isDark={isDark} onThemeToggle={() => setIsDark((current) => !current)} />
         <main>
           <Hero />
-         
+          {/* <About /> */}
           <Skills />
           <Projects />
           <Experience />

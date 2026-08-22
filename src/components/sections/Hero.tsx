@@ -43,9 +43,8 @@ export default function Hero() {
         <div className="hero__avatar-wrap">
           <div className="hero__avatar-ring hero__avatar-ring--outer" />
           <div className="hero__avatar-ring hero__avatar-ring--inner" />
-          <div className="hero__avatar">
-            <span className="hero__avatar-initials">AF</span>
-          </div>
+         <div className="hero__avatar">
+<img src="/assets/images/photo.png" alt="Antemasoa Fiderana Rakotonjanahary" className="hero__avatar-img" /></div>
           <div className="hero__orbit hero__orbit--1"><span>✿</span></div>
           <div className="hero__orbit hero__orbit--2"><span>⋆</span></div>
           <div className="hero__orbit hero__orbit--3"><span>◇</span></div>

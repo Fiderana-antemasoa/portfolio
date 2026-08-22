@@ -9,7 +9,12 @@ const NAV_LINKS = [
   { href: "#contact", label: "Contact" },
 ];
 
-export default function Navbar() {
+type NavbarProps = {
+  isDark: boolean;
+  onThemeToggle: () => void;
+};
+
+export default function Navbar({ isDark, onThemeToggle }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -43,9 +48,15 @@ export default function Navbar() {
         </nav>
 
         <div className="navbar__right">
-          <div className="navbar__toggle">
+          <button
+            type="button"
+            className={`navbar__toggle ${isDark ? "navbar__toggle--dark" : ""}`}
+            onClick={onThemeToggle}
+            aria-label={isDark ? "Activer le mode clair" : "Activer le mode sombre"}
+            aria-pressed={isDark}
+          >
             <div className="navbar__toggle-dot" />
-          </div>
+          </button>
           <span className="navbar__right-star">✦</span>
         </div>
       </header>
