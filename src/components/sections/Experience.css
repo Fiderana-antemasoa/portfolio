@@ -38,4 +38,4 @@
   color: var(--blanc-rose); margin: 10px 0 4px;
 }
 .exp-item__company { font-size: 0.9rem; color: var(--violet-light); margin-bottom: 12px; }
-.exp-item__desc { font-size: 0.9rem; color: rgba(248,232,245,0.65); line-height: 1.75; }
+.exp-item__desc { color: #6B4A70; }
