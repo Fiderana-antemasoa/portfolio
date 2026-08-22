@@ -4,11 +4,21 @@ import { FiPhone, FiMail } from 'react-icons/fi'
 import './Contact.css'
 
 export default function Contact() {
-  const [formState, setFormState] = useState({ name: '', email: '', message: '' })
+  const [formState, setFormState] = useState({
+    name: '',
+    email: '',
+    message: '',
+  })
+
   const [sent, setSent] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormState((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormState((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,16 +31,21 @@ export default function Contact() {
       <div className="section-inner contact__inner">
         <div className="contact__header reveal">
           <p className="section-eyebrow">✦ Contact</p>
+
           <h2 className="section-title">
             Travaillons <span className="gradient-text">ensemble</span>
           </h2>
+
           <p className="contact__desc">
             Un projet en tête ? Une collaboration ? Ou juste envie de dire bonjour ?
             Je suis toujours ravie d'échanger. ✿
           </p>
         </div>
 
-        <div className="contact__form-wrap reveal" style={{ transitionDelay: '0.15s' }}>
+        <div
+          className="contact__form-wrap reveal"
+          style={{ transitionDelay: '0.15s' }}
+        >
           {sent ? (
             <div className="contact__success">
               <span>🌸</span>
@@ -44,6 +59,7 @@ export default function Contact() {
                   <label className="form-label" htmlFor="name">
                     Nom
                   </label>
+
                   <input
                     id="name"
                     name="name"
@@ -60,6 +76,7 @@ export default function Contact() {
                   <label className="form-label" htmlFor="email">
                     Email
                   </label>
+
                   <input
                     id="email"
                     name="email"
@@ -77,6 +94,7 @@ export default function Contact() {
                 <label className="form-label" htmlFor="message">
                   Message
                 </label>
+
                 <textarea
                   id="message"
                   name="message"
@@ -96,18 +114,47 @@ export default function Contact() {
           )}
         </div>
 
-        <div className="contact__socials reveal" style={{ transitionDelay: '0.3s' }}>
+        <div
+          className="contact__socials reveal"
+          style={{ transitionDelay: '0.3s' }}
+        >
           {[
-  { icon: <FaGithub />, label: 'GitHub', href: '#' },
-  { icon: <FaLinkedin />, label: 'LinkedIn', href: '#' },
-  { icon: <FiPhone />, label: 'Téléphone', href: 'tel:+261000000000' },
-  { icon: <FiMail />, label: 'Email', href: 'mailto:hello@monportfolio.fr' },
-].map(({ icon, label, href }) => (
-  <a key={label} href={href} className="contact__social">
-    <span className="contact__social-icon">{icon}</span>
-    <span>{label}</span>
-  </a>
-))}
+            {
+              icon: <FaGithub />,
+              label: 'GitHub',
+              href: 'https://github.com/Fiderana-antemasoa',
+              external: true,
+            },
+            {
+              icon: <FaLinkedin />,
+              label: 'LinkedIn',
+              href: 'https://www.linkedin.com/in/fiderana-rakotonjanahary-7581a4403',
+              external: true,
+            },
+            {
+              icon: <FiPhone />,
+              label: 'Téléphone',
+              href: 'tel:+261327640693',
+              external: false,
+            },
+            {
+              icon: <FiMail />,
+              label: 'Email',
+              href: 'mailto:fideranasrakotonjanahary@gmail.com',
+              external: false,
+            },
+          ].map(({ icon, label, href, external }) => (
+            <a
+              key={label}
+              href={href}
+              className="contact__social"
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+            >
+              <span className="contact__social-icon">{icon}</span>
+              <span>{label}</span>
+            </a>
+          ))}
         </div>
       </div>
     </section>

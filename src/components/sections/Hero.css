@@ -145,8 +145,15 @@
   background: transparent;
   border: 1.5px solid rgba(155,89,182,0.4);
   color: #9B59B6;
-  cursor: not-allowed;
-  opacity: 0.7;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.hero__btn--cv:hover {
+  background: rgba(232,160,191,0.14);
+  border-color: var(--rose-poudre);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(155,89,182,0.18);
 }
 
 .hero__btn--cv::after {

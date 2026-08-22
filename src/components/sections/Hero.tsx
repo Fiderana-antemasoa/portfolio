@@ -10,32 +10,37 @@ export default function Hero() {
       <div className="hero__content">
         <p className="hero__eyebrow">✦ Développeuse Fullstack</p>
 
-       <h1 className="hero__title">
-  <span className="hero__name">RAKOTONJANAHARY<br />Antemasoa Fiderana</span>
-  <span className="gradient-text">expériences digitales</span><br />
-  qui prennent vie
-</h1>
+        <h1 className="hero__title">
+          <span className="hero__name">
+            RAKOTONJANAHARY<br />
+            Antemasoa Fiderana
+          </span>
+          <span className="gradient-text">expériences digitales</span><br />
+          qui prennent vie
+        </h1>
 
-       <p className="hero__desc">
-  Je conçois et développe des applications web complètes,
-  du backend robuste à l'interface soignée — pour transformer
-  vos idées en produits qui fonctionnent vraiment.
-</p>
+        <p className="hero__desc">
+          Je conçois et développe des applications web complètes,
+          du backend robuste à l'interface soignée — pour transformer
+          vos idées en produits qui fonctionnent vraiment.
+        </p>
 
         <div className="hero__actions">
           <a href="#projects" className="hero__btn hero__btn--primary">
             Voir mes projets
           </a>
+
           <a href="#contact" className="hero__btn hero__btn--ghost">
             Me contacter ✦
           </a>
-          <button
-            className="hero__btn hero__btn--cv"
-            disabled
-            title="CV bientôt disponible"
-          >
-            📄 Télécharger mon CV
-          </button>
+<a
+  href="/CV_Fiderana.pdf"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="hero__btn hero__btn--cv"
+>
+  📄 Télécharger mon CV
+</a>
         </div>
       </div>
 
@@ -43,12 +48,30 @@ export default function Hero() {
         <div className="hero__avatar-wrap">
           <div className="hero__avatar-ring hero__avatar-ring--outer" />
           <div className="hero__avatar-ring hero__avatar-ring--inner" />
-         <div className="hero__avatar">
-<img src="/assets/images/photo.png" alt="Antemasoa Fiderana Rakotonjanahary" className="hero__avatar-img" /></div>
-          <div className="hero__orbit hero__orbit--1"><span>✿</span></div>
-          <div className="hero__orbit hero__orbit--2"><span>⋆</span></div>
-          <div className="hero__orbit hero__orbit--3"><span>◇</span></div>
-          <div className="hero__orbit hero__orbit--4"><span>🌸</span></div>
+
+          <div className="hero__avatar">
+            <img
+              src="/assets/images/photo.png"
+              alt="Antemasoa Fiderana Rakotonjanahary"
+              className="hero__avatar-img"
+            />
+          </div>
+
+          <div className="hero__orbit hero__orbit--1">
+            <span>✿</span>
+          </div>
+
+          <div className="hero__orbit hero__orbit--2">
+            <span>⋆</span>
+          </div>
+
+          <div className="hero__orbit hero__orbit--3">
+            <span>◇</span>
+          </div>
+
+          <div className="hero__orbit hero__orbit--4">
+            <span>🌸</span>
+          </div>
         </div>
       </div>
 
