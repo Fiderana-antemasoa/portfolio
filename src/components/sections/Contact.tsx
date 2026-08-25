@@ -4,6 +4,7 @@ import { FiPhone, FiMail } from 'react-icons/fi'
 import './Contact.css'
 
 export default function Contact() {
+  console.log('CONTACT CSS CHARGE')
   const [formState, setFormState] = useState({
     name: '',
     email: '',

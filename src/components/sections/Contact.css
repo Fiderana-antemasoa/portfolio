@@ -157,3 +157,212 @@
   justify-content: center;
   font-size: 1.15rem;
 }
+
+/* =========================================
+   CONTACT — MODE CLAIR
+========================================= */
+
+[data-theme="light"] .contact {
+  color: #35173f;
+}
+
+[data-theme="light"] .contact__header {
+  color: #35173f;
+}
+
+[data-theme="light"] .contact__header .section-eyebrow {
+  color: #6d397d;
+}
+
+[data-theme="light"] .contact__header .section-title {
+  color: #35173f;
+}
+
+[data-theme="light"] .contact__header .section-title .gradient-text {
+  color: #b84f87;
+}
+
+/* Description sous le titre */
+
+[data-theme="light"] .contact__subtitle,
+[data-theme="light"] .contact__description,
+[data-theme="light"] .contact__intro {
+  color: #6b5870;
+}
+
+/* Labels */
+
+[data-theme="light"] .contact__field label,
+[data-theme="light"] .contact__label {
+  color: #b84f87;
+  font-weight: 600;
+}
+
+/* Champs */
+
+[data-theme="light"] .contact__field input,
+[data-theme="light"] .contact__field textarea,
+[data-theme="light"] .contact__form input,
+[data-theme="light"] .contact__form textarea {
+  color: #35173f;
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(155, 89, 182, 0.28);
+  box-shadow:
+    inset 0 1px 8px rgba(120, 60, 140, 0.04),
+    0 4px 15px rgba(120, 60, 140, 0.04);
+}
+
+/* Placeholder */
+
+[data-theme="light"] .contact__field input::placeholder,
+[data-theme="light"] .contact__field textarea::placeholder,
+[data-theme="light"] .contact__form input::placeholder,
+[data-theme="light"] .contact__form textarea::placeholder {
+  color: #806d86;
+  opacity: 1;
+}
+
+/* Focus */
+
+[data-theme="light"] .contact__field input:focus,
+[data-theme="light"] .contact__field textarea:focus,
+[data-theme="light"] .contact__form input:focus,
+[data-theme="light"] .contact__form textarea:focus {
+  outline: none;
+  color: #35173f;
+  border-color: #b84f87;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 0 0 3px rgba(184, 79, 135, 0.1),
+    0 8px 25px rgba(120, 60, 140, 0.08);
+}
+
+/* Bouton */
+
+[data-theme="light"] .contact__submit,
+[data-theme="light"] .contact__form button {
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    #a653bb,
+    #c2527a
+  );
+  border-color: transparent;
+  box-shadow:
+    0 10px 25px rgba(166, 83, 187, 0.22);
+}
+
+/* Hover bouton */
+
+[data-theme="light"] .contact__submit:hover,
+[data-theme="light"] .contact__form button:hover {
+  color: #ffffff;
+  box-shadow:
+    0 14px 30px rgba(166, 83, 187, 0.3);
+}
+
+/* Texte éventuel autour du formulaire */
+
+[data-theme="light"] .contact__form p,
+[data-theme="light"] .contact__form span {
+  color: #6b5870;
+}
+
+/* Icônes / décorations */
+
+[data-theme="light"] .contact__icon {
+  color: #b84f87;
+}
+
+/* =========================================
+   FALLBACK SI LE THÈME UTILISE .light
+========================================= */
+
+.light .contact {
+  color: #35173f;
+}
+
+.light .contact__subtitle,
+.light .contact__description,
+.light .contact__intro {
+  color: #6b5870;
+}
+
+.light .contact__field label,
+.light .contact__label {
+  color: #b84f87;
+}
+
+.light .contact__field input,
+.light .contact__field textarea,
+.light .contact__form input,
+.light .contact__form textarea {
+  color: #35173f;
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(155, 89, 182, 0.28);
+}
+
+.light .contact__field input::placeholder,
+.light .contact__field textarea::placeholder,
+.light .contact__form input::placeholder,
+.light .contact__form textarea::placeholder {
+  color: #806d86;
+  opacity: 1;
+}
+
+.light .contact__field input:focus,
+.light .contact__field textarea:focus,
+.light .contact__form input:focus,
+.light .contact__form textarea:focus {
+  color: #35173f;
+  border-color: #b84f87;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.light .contact__submit,
+.light .contact__form button {
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    #a653bb,
+    #c2527a
+  );
+}
+/* =========================================
+   CONTACT — TEXTE INTRODUCTION MODE CLAIR
+========================================= */
+
+[data-theme="light"] .contact p {
+  color: #6b5870 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .contact__subtitle {
+  color: #6b5870 !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .contact__description {
+  color: #6b5870 !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .contact__intro {
+  color: #6b5870 !important;
+  opacity: 1 !important;
+}
+
+/* Si le texte possède une classe spécifique */
+
+[data-theme="light"] .contact__header p {
+  color: #6b5870 !important;
+  opacity: 1 !important;
+}
+
+/* Texte directement placé sous le titre */
+
+[data-theme="light"] .contact__header > p {
+  color: #6b5870 !important;
+  opacity: 1 !important;
+}
