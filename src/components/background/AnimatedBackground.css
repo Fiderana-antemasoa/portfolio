@@ -1,0 +1,157 @@
+.animated-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.animated-background canvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0.95;
+}
+
+.animated-background__glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  animation: backgroundGlow 8s ease-in-out infinite;
+}
+
+.animated-background__glow--one {
+  width: 480px;
+  height: 480px;
+  top: 5%;
+  right: 4%;
+  background: rgba(210, 78, 161, 0.13);
+}
+
+.animated-background__glow--two {
+  width: 420px;
+  height: 420px;
+  bottom: 5%;
+  left: 5%;
+  background: rgba(119, 70, 183, 0.1);
+  animation-delay: -4s;
+}
+
+.animated-background__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 35%,
+      rgba(20, 12, 25, 0.12) 100%
+    );
+}
+
+@keyframes backgroundGlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(20px, -25px, 0) scale(1.08);
+  }
+}
+
+/* =========================================
+   DARK MODE
+========================================= */
+
+.dark .animated-background__vignette,
+[data-theme='dark'] .animated-background__vignette {
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 30%,
+      rgba(12, 7, 17, 0.2) 100%
+    );
+}
+
+/* =========================================
+   LIGHT MODE
+========================================= */
+
+.light .animated-background__glow--one,
+[data-theme='light'] .animated-background__glow--one {
+  background: rgba(220, 104, 173, 0.12);
+}
+
+.light .animated-background__glow--two,
+[data-theme='light'] .animated-background__glow--two {
+  background: rgba(150, 101, 195, 0.1);
+}
+
+.light .animated-background__vignette,
+[data-theme='light'] .animated-background__vignette {
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 35%,
+      rgba(255, 245, 250, 0.08) 100%
+    );
+}
+
+/* =========================================
+   PAUSE
+========================================= */
+
+.animated-background--paused canvas,
+.animated-background--paused .animated-background__glow {
+  animation-play-state: paused;
+}
+
+/* =========================================
+   PERFORMANCE
+========================================= */
+
+@media (max-width: 900px) {
+  .animated-background canvas {
+    opacity: 0.7;
+  }
+
+  .animated-background__glow {
+    filter: blur(70px);
+  }
+
+  .animated-background__glow--one {
+    width: 350px;
+    height: 350px;
+  }
+
+  .animated-background__glow--two {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+@media (max-width: 600px) {
+  .animated-background canvas {
+    opacity: 0.5;
+  }
+
+  .animated-background__glow--one {
+    width: 280px;
+    height: 280px;
+  }
+
+  .animated-background__glow--two {
+    width: 240px;
+    height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-background__glow {
+    animation: none;
+  }
+}

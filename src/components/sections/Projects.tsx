@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { projects } from '../../data/projects'
 import './Projects.css'
 
@@ -7,59 +8,146 @@ type Project = (typeof projects)[number] & {
   images?: string[]
 }
 
-type Direction = 'next' | 'previous' | null
-
 export default function Projects() {
-  const sectionRef = useRef<HTMLElement | null>(null)
-  const visualRef = useRef<HTMLDivElement | null>(null)
-  const lockedRef = useRef(false)
-  const unlockTimerRef = useRef<number | null>(null)
+  const containerRef = useRef<HTMLElement | null>(null)
+  const previewRef = useRef<HTMLDivElement | null>(null)
 
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [imageIndex, setImageIndex] = useState(0)
-  const [direction, setDirection] = useState<Direction>(null)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [previewImageIndex, setPreviewImageIndex] = useState(0)
+
+  const [mousePosition, setMousePosition] = useState({
+    x: 0,
+    y: 0,
+  })
+
+  const [smoothPosition, setSmoothPosition] = useState({
+    x: 0,
+    y: 0,
+  })
+
   const [previewOpen, setPreviewOpen] = useState(false)
 
-  const activeProject = projects[activeIndex] as Project
-  const images = activeProject?.images ?? []
+  const activeProject =
+    hoveredIndex !== null
+      ? (projects[hoveredIndex] as Project)
+      : null
+
+  const activeImages =
+    activeProject?.images ?? []
+
+  const activeImage =
+    activeImages[previewImageIndex] ??
+    activeImages[0] ??
+    null
 
   /*
    * =========================================
-   * Vérifie si la section est suffisamment
-   * visible pour intercepter le scroll.
+   * POSITION FLUIDE DE LA PREVIEW
    * =========================================
    */
 
-  const isSectionActive = () => {
-    const section = sectionRef.current
+  useEffect(() => {
+    let animationFrame: number
 
-    if (!section) {
-      return false
+    const animate = () => {
+      setSmoothPosition((previous) => ({
+        x:
+          previous.x +
+          (mousePosition.x - previous.x) * 0.12,
+        y:
+          previous.y +
+          (mousePosition.y - previous.y) * 0.12,
+      }))
+
+      animationFrame =
+        requestAnimationFrame(animate)
     }
 
-    const rect = section.getBoundingClientRect()
+    animationFrame =
+      requestAnimationFrame(animate)
 
-    return (
-      rect.top <= 10 &&
-      rect.bottom >= window.innerHeight - 10
-    )
+    return () => {
+      cancelAnimationFrame(animationFrame)
+    }
+  }, [mousePosition])
+
+  /*
+   * =========================================
+   * MOUVEMENT SOURIS
+   * =========================================
+   */
+
+  const handleMouseMove = (
+    event: React.MouseEvent<HTMLElement>
+  ) => {
+    const container =
+      containerRef.current
+
+    if (!container) {
+      return
+    }
+
+    const rect =
+      container.getBoundingClientRect()
+
+    setMousePosition({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    })
   }
 
   /*
    * =========================================
-   * Déverrouillage
+   * ENTRÉE SUR UN PROJET
    * =========================================
    */
 
-  const unlockScroll = (delay = 700) => {
-    if (unlockTimerRef.current) {
-      window.clearTimeout(unlockTimerRef.current)
+  const handleProjectEnter = (
+    index: number
+  ) => {
+    setHoveredIndex(index)
+    setPreviewImageIndex(0)
+  }
+
+  /*
+   * =========================================
+   * SORTIE
+   * =========================================
+   */
+
+  const handleProjectLeave = () => {
+    setHoveredIndex(null)
+  }
+
+  /*
+   * =========================================
+   * CHANGEMENT AUTOMATIQUE DES PHOTOS
+   * =========================================
+   */
+
+  useEffect(() => {
+    if (
+      hoveredIndex === null ||
+      activeImages.length <= 1
+    ) {
+      return
     }
 
-    unlockTimerRef.current = window.setTimeout(() => {
-      lockedRef.current = false
-    }, delay)
-  }
+    const timer = window.setInterval(() => {
+      setPreviewImageIndex(
+        (current) =>
+          (current + 1) %
+          activeImages.length
+      )
+    }, 1800)
+
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [
+    hoveredIndex,
+    activeImages.length,
+  ])
 
   /*
    * =========================================
@@ -68,333 +156,66 @@ export default function Projects() {
    */
 
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleEscape = (
+      event: KeyboardEvent
+    ) => {
       if (event.key === 'Escape') {
         setPreviewOpen(false)
       }
     }
 
-    window.addEventListener('keydown', handleEscape)
+    window.addEventListener(
+      'keydown',
+      handleEscape
+    )
 
     return () => {
-      window.removeEventListener('keydown', handleEscape)
-
-      if (unlockTimerRef.current) {
-        window.clearTimeout(unlockTimerRef.current)
-      }
+      window.removeEventListener(
+        'keydown',
+        handleEscape
+      )
     }
   }, [])
 
   /*
    * =========================================
-   * SCROLL UNIQUEMENT DANS LA ZONE PHOTO
+   * OUVRIR LIGHTBOX
    * =========================================
    */
 
-  useEffect(() => {
-    const handleWheel = (event: WheelEvent) => {
-      /*
-       * Si la lightbox est ouverte,
-       * le scroll de la page est ignoré.
-       */
-      if (previewOpen) {
-        event.preventDefault()
-        return
-      }
-
-      /*
-       * La section doit être actuellement
-       * au premier plan.
-       */
-      if (!isSectionActive()) {
-        return
-      }
-
-      const visual = visualRef.current
-
-      if (!visual) {
-        return
-      }
-
-      /*
-       * IMPORTANT :
-       * On regarde où se trouve réellement
-       * le curseur.
-       */
-      const rect = visual.getBoundingClientRect()
-
-      const cursorInsideVisual =
-        event.clientX >= rect.left &&
-        event.clientX <= rect.right &&
-        event.clientY >= rect.top &&
-        event.clientY <= rect.bottom
-
-      /*
-       * CURSEUR À GAUCHE
-       *
-       * On ne fait absolument rien.
-       *
-       * Le navigateur garde donc son scroll
-       * naturel.
-       */
-      if (!cursorInsideVisual) {
-        return
-      }
-
-      /*
-       * Pas d'images => scroll normal.
-       */
-      if (!activeProject || images.length === 0) {
-        return
-      }
-
-      /*
-       * Évite plusieurs changements causés
-       * par la même molette.
-       */
-      if (lockedRef.current) {
-        event.preventDefault()
-        return
-      }
-
-      const goingDown = event.deltaY > 0
-      const goingUp = event.deltaY < 0
-
-      const isFirstImage = imageIndex === 0
-      const isLastImage =
-        imageIndex === images.length - 1
-
-      const isFirstProject = activeIndex === 0
-      const isLastProject =
-        activeIndex === projects.length - 1
-
-      /*
-       * =========================================
-       * DESCENTE
-       * =========================================
-       */
-
-      if (goingDown) {
-        /*
-         * Encore une photo dans le projet.
-         */
-        if (!isLastImage) {
-          event.preventDefault()
-
-          lockedRef.current = true
-
-          setDirection('next')
-          setImageIndex((current) => current + 1)
-
-          unlockScroll(700)
-
-          return
-        }
-
-        /*
-         * Dernière photo :
-         * passer au projet suivant.
-         */
-        if (!isLastProject) {
-          event.preventDefault()
-
-          lockedRef.current = true
-
-          setDirection('next')
-
-          setActiveIndex(
-            (current) => current + 1
-          )
-
-          setImageIndex(0)
-
-          unlockScroll(800)
-
-          return
-        }
-
-        /*
-         * Dernière photo du dernier projet.
-         *
-         * IMPORTANT :
-         * on ne bloque PAS.
-         *
-         * Le scroll descend normalement
-         * vers la section suivante.
-         */
-        return
-      }
-
-      /*
-       * =========================================
-       * REMONTEE
-       * =========================================
-       */
-
-      if (goingUp) {
-        /*
-         * Encore une photo précédente.
-         */
-        if (!isFirstImage) {
-          event.preventDefault()
-
-          lockedRef.current = true
-
-          setDirection('previous')
-          setImageIndex((current) => current - 1)
-
-          unlockScroll(700)
-
-          return
-        }
-
-        /*
-         * Première photo :
-         * retourner au projet précédent.
-         */
-        if (!isFirstProject) {
-          event.preventDefault()
-
-          lockedRef.current = true
-
-          const previousProjectIndex =
-            activeIndex - 1
-
-          const previousProject =
-            projects[
-              previousProjectIndex
-            ] as Project
-
-          const previousImages =
-            previousProject?.images ?? []
-
-          setDirection('previous')
-
-          setActiveIndex(
-            previousProjectIndex
-          )
-
-          setImageIndex(
-            Math.max(
-              previousImages.length - 1,
-              0
-            )
-          )
-
-          unlockScroll(800)
-
-          return
-        }
-
-        /*
-         * Première photo du premier projet :
-         * scroll normal vers la section précédente.
-         */
-        return
-      }
-    }
-
-    window.addEventListener(
-      'wheel',
-      handleWheel,
-      {
-        passive: false,
-      }
-    )
-
-    return () => {
-      window.removeEventListener(
-        'wheel',
-        handleWheel
-      )
-    }
-  }, [
-    activeIndex,
-    imageIndex,
-    images.length,
-    activeProject,
-    previewOpen,
-  ])
-
-  /*
-   * =========================================
-   * CHANGER DE PROJET PAR CLIC
-   * =========================================
-   */
-
-  const handleProjectClick = (
-    index: number
-  ) => {
-    if (index === activeIndex) {
+  const openPreview = () => {
+    if (!activeImage) {
       return
     }
 
-    setDirection(
-      index > activeIndex
-        ? 'next'
-        : 'previous'
-    )
-
-    setActiveIndex(index)
-    setImageIndex(0)
+    setPreviewOpen(true)
   }
 
   /*
    * =========================================
-   * RÉCUPÉRER UNE IMAGE
+   * PROJET INEXISTANT
    * =========================================
    */
 
-  const getImage = (offset: number) => {
-    if (images.length === 0) {
-      return null
-    }
-
-    const index =
-      (imageIndex +
-        offset +
-        images.length) %
-      images.length
-
-    return images[index]
-  }
-
-  const previousImage = getImage(-1)
-  const currentImage = getImage(0)
-  const nextImage = getImage(1)
-
-  /*
-   * =========================================
-   * CLASSE ANIMATION
-   * =========================================
-   */
-
-  const galleryClass =
-    direction === 'next'
-      ? 'project-gallery--next'
-      : direction === 'previous'
-        ? 'project-gallery--previous'
-        : ''
-
-  if (!activeProject) {
+  if (!projects.length) {
     return null
   }
 
   return (
-    <section
-      ref={sectionRef}
-      id="projects"
-      className="projects section"
-    >
-      <div className="projects__sticky">
-
+    <>
+      <section
+        ref={containerRef}
+        id="projects"
+        className="projects section"
+        onMouseMove={handleMouseMove}
+      >
         <div className="section-inner projects__inner">
 
           {/* =================================
               HEADER
           ================================= */}
 
-          <div className="projects__header">
+          <div className="projects__header reveal">
             <p className="section-eyebrow">
               ✦ Projets
             </p>
@@ -405,280 +226,243 @@ export default function Projects() {
                 créé
               </span>
             </h2>
+
+            <p className="projects__intro">
+              Une sélection de projets réalisés
+              au fil de mes expériences.
+            </p>
           </div>
 
           {/* =================================
-              SHOWCASE
+              FLOATING PREVIEW
           ================================= */}
 
-          <div className="projects__showcase">
+          <div
+            ref={previewRef}
+            className={`projects__preview ${
+              hoveredIndex !== null
+                ? 'projects__preview--visible'
+                : ''
+            }`}
+            style={{
+              transform: `translate3d(
+                ${smoothPosition.x + 40}px,
+                ${smoothPosition.y - 150}px,
+                0
+              )`,
+            }}
+            onClick={openPreview}
+          >
+            <div className="projects__preview-frame">
 
-            {/* =================================
-                LISTE
-            ================================= */}
-
-            <div className="projects__navigation">
-
-              {projects.map(
-                (project, index) => (
-                  <button
-                    key={project.id}
-                    type="button"
-                    className={`project-nav ${
-                      activeIndex === index
-                        ? 'project-nav--active'
+              {activeImages.map(
+                (image, index) => (
+                  <img
+                    key={`${image}-${index}`}
+                    src={image}
+                    alt={
+                      activeProject
+                        ? activeProject.title
                         : ''
-                    }`}
-                    onClick={() =>
-                      handleProjectClick(
-                        index
-                      )
                     }
-                  >
-                    <span className="project-nav__number">
-                      {String(
-                        index + 1
-                      ).padStart(2, '0')}
-                    </span>
-
-                    <span className="project-nav__title">
-                      {project.title}
-                    </span>
-
-                    <span className="project-nav__arrow">
-                      →
-                    </span>
-                  </button>
+                    className="projects__preview-image"
+                    style={{
+                      opacity:
+                        index ===
+                        previewImageIndex
+                          ? 1
+                          : 0,
+                      transform:
+                        index ===
+                        previewImageIndex
+                          ? 'scale(1)'
+                          : 'scale(1.08)',
+                    }}
+                  />
                 )
               )}
 
+              <div className="projects__preview-overlay" />
+
+              {activeProject && (
+                <div className="projects__preview-info">
+                  <span>
+                    {String(
+                      (hoveredIndex ?? 0) + 1
+                    ).padStart(2, '0')}
+                  </span>
+
+                  <span>
+                    {activeProject.title}
+                  </span>
+                </div>
+              )}
+
+              {activeImages.length > 1 && (
+                <div className="projects__preview-progress">
+                  {activeImages.map(
+                    (_, index) => (
+                      <span
+                        key={index}
+                        className={
+                          index ===
+                          previewImageIndex
+                            ? 'is-active'
+                            : ''
+                        }
+                      />
+                    )
+                  )}
+                </div>
+              )}
+
+              <span className="projects__preview-zoom">
+                +
+              </span>
             </div>
+          </div>
 
-            {/* =================================
-                ZONE PHOTO
-            ================================= */}
+          {/* =================================
+              LISTE DES PROJETS
+          ================================= */}
 
-            <div
-              ref={visualRef}
-              className="projects__visual"
-            >
+          <div className="projects__list">
 
-              <div
-                className={`project-gallery ${galleryClass}`}
-              >
+            {projects.map(
+              (project, index) => {
+                const currentProject =
+                  project as Project
 
-                {/* IMAGE PRÉCÉDENTE */}
+                const isActive =
+                  hoveredIndex === index
 
-                {previousImage && (
-                  <div
-                    className="
-                      project-gallery__card
-                      project-gallery__card--left
-                    "
-                  >
-                    <img
-                      src={previousImage}
-                      alt=""
-                    />
-                  </div>
-                )}
-
-                {/* IMAGE PRINCIPALE */}
-
-                {currentImage && (
-                  <div
-                    className="
-                      project-gallery__card
-                      project-gallery__card--main
-                      project-gallery__card--clickable
-                    "
-                    role="button"
-                    tabIndex={0}
-                    onClick={() =>
-                      setPreviewOpen(true)
+                return (
+                  <article
+                    key={project.id}
+                    className={`project-item ${
+                      isActive
+                        ? 'project-item--active'
+                        : ''
+                    }`}
+                    onMouseEnter={() =>
+                      handleProjectEnter(index)
                     }
-                    onKeyDown={(event) => {
+                    onMouseLeave={
+                      handleProjectLeave
+                    }
+                    onClick={() => {
                       if (
-                        event.key ===
-                          'Enter' ||
-                        event.key === ' '
+                        currentProject.images
+                          ?.length
                       ) {
+                        setHoveredIndex(index)
+                        setPreviewImageIndex(0)
                         setPreviewOpen(true)
                       }
                     }}
                   >
+                    <div className="project-item__line" />
 
-                    <img
-                      src={currentImage}
-                      alt={`${activeProject.title} capture`}
-                    />
+                    <div className="project-item__content">
 
-                    <div className="project-gallery__overlay" />
+                      {/* NUMÉRO */}
 
-                    {/* Décorations */}
-
-                    <span
-                      className="
-                        project-gallery__flower
-                        project-gallery__flower--1
-                      "
-                    >
-                      ✿
-                    </span>
-
-                    <span
-                      className="
-                        project-gallery__flower
-                        project-gallery__flower--2
-                      "
-                    >
-                      ❀
-                    </span>
-
-                    <span
-                      className="
-                        project-gallery__star
-                        project-gallery__star--1
-                      "
-                    >
-                      ✦
-                    </span>
-
-                    <span
-                      className="
-                        project-gallery__star
-                        project-gallery__star--2
-                      "
-                    >
-                      ✧
-                    </span>
-
-                    {/* =================================
-                        INFORMATIONS
-                    ================================= */}
-
-                    <div className="project-gallery__content">
-
-                      <span className="project-gallery__badge">
-                        {String(
-                          activeIndex + 1
-                        ).padStart(2, '0')}
-                        {' · '}
-                        {activeProject.title}
-                      </span>
-
-                      <h3>
-                        {activeProject.title}
-                      </h3>
-
-                      <p>
-                        {activeProject.description}
-                      </p>
-
-                      <div className="project-gallery__technologies">
-
-                        {(
-                          activeProject.tags ??
-                          []
-                        ).map(
-                          (tag: string) => (
-                            <span
-                              key={tag}
-                              className="
-                                project-gallery__technology
-                              "
-                            >
-                              {tag}
-                            </span>
-                          )
+                      <div className="project-item__number">
+                        {String(index + 1).padStart(
+                          2,
+                          '0'
                         )}
-
                       </div>
 
+                      {/* INFORMATIONS */}
+
+                      <div className="project-item__main">
+
+                        <div className="project-item__title-row">
+
+                          <h3 className="project-item__title">
+                            <span>
+                              {project.title}
+                            </span>
+                          </h3>
+
+                          <ArrowUpRight
+                            className="project-item__arrow"
+                          />
+                        </div>
+
+                        <p className="project-item__description">
+                          {project.description}
+                        </p>
+
+                        {currentProject.tags &&
+                          currentProject.tags
+                            .length > 0 && (
+                            <div className="project-item__tags">
+                              {currentProject.tags.map(
+                                (tag) => (
+                                  <span
+                                    key={tag}
+                                  >
+                                    {tag}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          )}
+                      </div>
+
+                      {/* ANNÉE */}
+
+                      <div className="project-item__year">
+                        {currentProject.year ??
+                          '2026'}
+                      </div>
+
+                      {/* FLÈCHE */}
+
+                      <div className="project-item__action">
+                        <ArrowUpRight />
+                      </div>
                     </div>
+                  </article>
+                )
+              }
+            )}
 
-                    {/* ZOOM */}
-
-                    <span className="project-gallery__zoom">
-                      +
-                    </span>
-
-                  </div>
-                )}
-
-                {/* IMAGE SUIVANTE */}
-
-                {nextImage && (
-                  <div
-                    className="
-                      project-gallery__card
-                      project-gallery__card--right
-                    "
-                  >
-                    <img
-                      src={nextImage}
-                      alt=""
-                    />
-                  </div>
-                )}
-
-              </div>
-
-              {/* COMPTEUR */}
-
-              <div className="project-gallery__counter">
-
-                <span>
-                  {String(
-                    imageIndex + 1
-                  ).padStart(2, '0')}
-                </span>
-
-                <span className="project-gallery__counter-line" />
-
-                <span>
-                  {String(
-                    Math.max(
-                      images.length,
-                      1
-                    )
-                  ).padStart(2, '0')}
-                </span>
-
-              </div>
-
-              <p className="project-gallery__hint">
-                Faites défiler pour découvrir
-              </p>
-
-            </div>
-
+            <div className="projects__bottom-line" />
           </div>
 
+          {/* =================================
+              INDICATION
+          ================================= */}
+
+          <div className="projects__hint">
+            <span className="projects__hint-dot" />
+            Survolez un projet pour découvrir
+            les captures
+          </div>
         </div>
+      </section>
 
-      </div>
-
-      {/* =========================================
+      {/* =================================
           LIGHTBOX
-      ========================================= */}
+      ================================= */}
 
       {previewOpen &&
-        currentImage && (
+        activeImage && (
           <div
             className="project-lightbox"
             onClick={() =>
               setPreviewOpen(false)
             }
           >
-
             <div
               className="project-lightbox__content"
               onClick={(event) =>
                 event.stopPropagation()
               }
             >
-
               <button
                 type="button"
                 className="project-lightbox__close"
@@ -691,31 +475,29 @@ export default function Projects() {
               </button>
 
               <img
-                src={currentImage}
-                alt={`${activeProject.title} capture en grand`}
+                src={activeImage}
+                alt={
+                  activeProject?.title ??
+                  'Projet'
+                }
                 className="project-lightbox__image"
               />
 
               <div className="project-lightbox__caption">
-
                 <span>
-                  {activeProject.title}
+                  {activeProject?.title}
                 </span>
 
                 <small>
                   Capture{' '}
-                  {imageIndex + 1}
+                  {previewImageIndex + 1}
                   {' / '}
-                  {images.length}
+                  {activeImages.length}
                 </small>
-
               </div>
-
             </div>
-
           </div>
         )}
-
-    </section>
+    </>
   )
 }
