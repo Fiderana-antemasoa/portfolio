@@ -1,48 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, X } from 'lucide-react'
 import { projects } from '../../data/projects'
 import './Projects.css'
 
 type Project = (typeof projects)[number] & {
   tags?: string[]
   images?: string[]
+  year?: string | number
 }
 
 export default function Projects() {
   const containerRef = useRef<HTMLElement | null>(null)
-  const previewRef = useRef<HTMLDivElement | null>(null)
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [previewImageIndex, setPreviewImageIndex] = useState(0)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [smoothPosition, setSmoothPosition] = useState({ x: 0, y: 0 })
 
-  const [mousePosition, setMousePosition] = useState({
-    x: 0,
-    y: 0,
-  })
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
-  const [smoothPosition, setSmoothPosition] = useState({
-    x: 0,
-    y: 0,
-  })
-
-  const [previewOpen, setPreviewOpen] = useState(false)
-
-  const activeProject =
-    hoveredIndex !== null
-      ? (projects[hoveredIndex] as Project)
+  const selectedProject =
+    selectedIndex !== null
+      ? (projects[selectedIndex] as Project)
       : null
 
-  const activeImages =
-    activeProject?.images ?? []
+  const selectedImages =
+    selectedProject?.images ?? []
 
-  const activeImage =
-    activeImages[previewImageIndex] ??
-    activeImages[0] ??
-    null
-
+  
   /*
    * =========================================
-   * POSITION FLUIDE DE LA PREVIEW
+   * PREVIEW QUI SUIT LA SOURIS
    * =========================================
    */
 
@@ -59,12 +48,10 @@ export default function Projects() {
           (mousePosition.y - previous.y) * 0.12,
       }))
 
-      animationFrame =
-        requestAnimationFrame(animate)
+      animationFrame = requestAnimationFrame(animate)
     }
 
-    animationFrame =
-      requestAnimationFrame(animate)
+    animationFrame = requestAnimationFrame(animate)
 
     return () => {
       cancelAnimationFrame(animationFrame)
@@ -73,22 +60,20 @@ export default function Projects() {
 
   /*
    * =========================================
-   * MOUVEMENT SOURIS
+   * MOUSE MOVE
    * =========================================
    */
 
   const handleMouseMove = (
     event: React.MouseEvent<HTMLElement>
   ) => {
-    const container =
-      containerRef.current
+    const container = containerRef.current
 
     if (!container) {
       return
     }
 
-    const rect =
-      container.getBoundingClientRect()
+    const rect = container.getBoundingClientRect()
 
     setMousePosition({
       x: event.clientX - rect.left,
@@ -98,108 +83,224 @@ export default function Projects() {
 
   /*
    * =========================================
-   * ENTRÉE SUR UN PROJET
+   * HOVER PROJECT
    * =========================================
    */
 
-  const handleProjectEnter = (
-    index: number
-  ) => {
+  const handleProjectEnter = (index: number) => {
     setHoveredIndex(index)
+    setPreviewImageIndex(0)
+  }
+
+  const handleProjectLeave = () => {
+    setHoveredIndex(null)
     setPreviewImageIndex(0)
   }
 
   /*
    * =========================================
-   * SORTIE
+   * OUVRIR LE MODAL
    * =========================================
    */
 
-  const handleProjectLeave = () => {
-    setHoveredIndex(null)
+  const openProject = (index: number) => {
+    const project = projects[index] as Project
+
+    setSelectedIndex(index)
+    setSelectedImageIndex(0)
+
+    setHoveredIndex(index)
+
+    document.body.style.overflow = 'hidden'
+
+    /*
+     * Si le projet n'a pas d'image,
+     * le modal peut quand même afficher
+     * ses informations.
+     */
+    if (!project.images?.length) {
+      setSelectedImageIndex(0)
+    }
   }
 
   /*
    * =========================================
-   * CHANGEMENT AUTOMATIQUE DES PHOTOS
+   * FERMER LE MODAL
+   * =========================================
+   */
+
+  const closeProject = () => {
+    setSelectedIndex(null)
+    setSelectedImageIndex(0)
+
+    document.body.style.overflow = ''
+  }
+
+  /*
+   * =========================================
+   * ESC
+   * =========================================
+   */
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeProject()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape)
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape)
+
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  /*
+   * =========================================
+   * SLIDESHOW AUTOMATIQUE
+   * =========================================
+   */
+
+  useEffect(() => {
+    if (
+      selectedIndex === null ||
+      selectedImages.length <= 1
+    ) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setSelectedImageIndex((current) => {
+        return (current + 1) % selectedImages.length
+      })
+    }, 2500)
+
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [
+    selectedIndex,
+    selectedImages.length,
+  ])
+
+  /*
+   * =========================================
+   * NAVIGATION IMAGES
+   * =========================================
+   */
+
+  const nextImage = () => {
+    if (selectedImages.length <= 1) {
+      return
+    }
+
+    setSelectedImageIndex(
+      (current) =>
+        (current + 1) % selectedImages.length
+    )
+  }
+
+  const previousImage = () => {
+    if (selectedImages.length <= 1) {
+      return
+    }
+
+    setSelectedImageIndex(
+      (current) =>
+        (current - 1 + selectedImages.length) %
+        selectedImages.length
+    )
+  }
+
+  /*
+   * =========================================
+   * TOUCH SWIPE
+   * =========================================
+   */
+
+  const touchStartX = useRef<number | null>(null)
+
+  const handleTouchStart = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
+    touchStartX.current =
+      event.touches[0].clientX
+  }
+
+  const handleTouchEnd = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
+    if (touchStartX.current === null) {
+      return
+    }
+
+    const touchEndX =
+      event.changedTouches[0].clientX
+
+    const difference =
+      touchStartX.current - touchEndX
+
+    if (Math.abs(difference) > 50) {
+      if (difference > 0) {
+        nextImage()
+      } else {
+        previousImage()
+      }
+    }
+
+    touchStartX.current = null
+  }
+
+  /*
+   * =========================================
+   * PROJECT ACTIF POUR LA PREVIEW
+   * =========================================
+   */
+
+  const previewProject =
+    hoveredIndex !== null
+      ? (projects[hoveredIndex] as Project)
+      : null
+
+  const previewImages =
+    previewProject?.images ?? []
+
+  /*
+   * =========================================
+   * SLIDESHOW PREVIEW AU SURVOL
    * =========================================
    */
 
   useEffect(() => {
     if (
       hoveredIndex === null ||
-      activeImages.length <= 1
+      previewImages.length <= 1
     ) {
       return
     }
 
     const timer = window.setInterval(() => {
-      setPreviewImageIndex(
-        (current) =>
-          (current + 1) %
-          activeImages.length
-      )
-    }, 1800)
+      setPreviewImageIndex((current) => {
+        return (current + 1) % previewImages.length
+      })
+    }, 2500)
 
     return () => {
       window.clearInterval(timer)
     }
-  }, [
-    hoveredIndex,
-    activeImages.length,
-  ])
+  }, [hoveredIndex, previewImages.length])
+
+  const previewImage =
+    previewImages[previewImageIndex] ?? previewImages[0] ?? null
 
   /*
    * =========================================
-   * ESC LIGHTBOX
+   * RENDER
    * =========================================
    */
-
-  useEffect(() => {
-    const handleEscape = (
-      event: KeyboardEvent
-    ) => {
-      if (event.key === 'Escape') {
-        setPreviewOpen(false)
-      }
-    }
-
-    window.addEventListener(
-      'keydown',
-      handleEscape
-    )
-
-    return () => {
-      window.removeEventListener(
-        'keydown',
-        handleEscape
-      )
-    }
-  }, [])
-
-  /*
-   * =========================================
-   * OUVRIR LIGHTBOX
-   * =========================================
-   */
-
-  const openPreview = () => {
-    if (!activeImage) {
-      return
-    }
-
-    setPreviewOpen(true)
-  }
-
-  /*
-   * =========================================
-   * PROJET INEXISTANT
-   * =========================================
-   */
-
-  if (!projects.length) {
-    return null
-  }
 
   return (
     <>
@@ -211,9 +312,7 @@ export default function Projects() {
       >
         <div className="section-inner projects__inner">
 
-          {/* =================================
-              HEADER
-          ================================= */}
+          {/* HEADER */}
 
           <div className="projects__header reveal">
             <p className="section-eyebrow">
@@ -233,12 +332,9 @@ export default function Projects() {
             </p>
           </div>
 
-          {/* =================================
-              FLOATING PREVIEW
-          ================================= */}
+          {/* PREVIEW DESKTOP */}
 
           <div
-            ref={previewRef}
             className={`projects__preview ${
               hoveredIndex !== null
                 ? 'projects__preview--visible'
@@ -251,40 +347,19 @@ export default function Projects() {
                 0
               )`,
             }}
-            onClick={openPreview}
           >
             <div className="projects__preview-frame">
-
-              {activeImages.map(
-                (image, index) => (
-                  <img
-                    key={`${image}-${index}`}
-                    src={image}
-                    alt={
-                      activeProject
-                        ? activeProject.title
-                        : ''
-                    }
-                    className="projects__preview-image"
-                    style={{
-                      opacity:
-                        index ===
-                        previewImageIndex
-                          ? 1
-                          : 0,
-                      transform:
-                        index ===
-                        previewImageIndex
-                          ? 'scale(1)'
-                          : 'scale(1.08)',
-                    }}
-                  />
-                )
+              {previewImage && (
+                <img
+                  src={previewImage}
+                  alt={previewProject?.title ?? ''}
+                  className="projects__preview-image"
+                />
               )}
 
               <div className="projects__preview-overlay" />
 
-              {activeProject && (
+              {previewProject && (
                 <div className="projects__preview-info">
                   <span>
                     {String(
@@ -293,211 +368,322 @@ export default function Projects() {
                   </span>
 
                   <span>
-                    {activeProject.title}
+                    {previewProject.title}
                   </span>
                 </div>
               )}
 
-              {activeImages.length > 1 && (
-                <div className="projects__preview-progress">
-                  {activeImages.map(
+              <span className="projects__preview-icon">
+                <ArrowUpRight />
+              </span>
+            </div>
+          </div>
+
+          {/* LISTE */}
+
+          <div className="projects__list">
+            {projects.map((project, index) => {
+              const currentProject =
+                project as Project
+
+              const isActive =
+                hoveredIndex === index
+
+              return (
+                <article
+                  key={project.id}
+                  className={`project-item ${
+                    isActive
+                      ? 'project-item--active'
+                      : ''
+                  }`}
+                  onMouseEnter={() =>
+                    handleProjectEnter(index)
+                  }
+                  onMouseLeave={
+                    handleProjectLeave
+                  }
+                  onClick={() =>
+                    openProject(index)
+                  }
+                >
+                  <div className="project-item__line" />
+
+                  <div className="project-item__content">
+
+                    <div className="project-item__number">
+                      {String(index + 1).padStart(
+                        2,
+                        '0'
+                      )}
+                    </div>
+
+                    <div className="project-item__main">
+                      <div className="project-item__title-row">
+                        <h3 className="project-item__title">
+                          <span>
+                            {project.title}
+                          </span>
+                        </h3>
+
+                        <ArrowUpRight className="project-item__arrow" />
+                      </div>
+
+                      <p className="project-item__description">
+                        {project.description}
+                      </p>
+
+                      {currentProject.tags &&
+                        currentProject.tags.length >
+                          0 && (
+                          <div className="project-item__tags">
+                            {currentProject.tags.map(
+                              (tag) => (
+                                <span key={tag}>
+                                  {tag}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        )}
+                    </div>
+
+                    <div className="project-item__year">
+                      {currentProject.year ?? '2026'}
+                    </div>
+
+                    <div className="project-item__action">
+                      <ArrowUpRight />
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
+
+            <div className="projects__bottom-line" />
+          </div>
+
+          <div className="projects__hint">
+            <span className="projects__hint-dot" />
+            Survolez puis cliquez sur un projet
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================
+          PROJECT MODAL
+      ========================================= */}
+
+      {selectedProject && (
+        <div
+          className="project-modal"
+          onClick={closeProject}
+        >
+          <div
+            className="project-modal__window"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+
+            {/* CLOSE */}
+
+            <button
+              type="button"
+              className="project-modal__close"
+              onClick={closeProject}
+              aria-label="Fermer le projet"
+            >
+              <X />
+            </button>
+
+            {/* LEFT : IMAGE */}
+
+            <div className="project-modal__visual">
+
+              <div className="project-modal__image-wrapper">
+
+                {selectedImages.length > 0 ? (
+                  selectedImages.map(
+                    (image, index) => (
+                      <img
+                        key={`${image}-${index}`}
+                        src={image}
+                        alt={`${selectedProject.title} - capture ${index + 1}`}
+                        className={`project-modal__image ${
+                          index ===
+                          selectedImageIndex
+                            ? 'project-modal__image--active'
+                            : ''
+                        }`}
+                      />
+                    )
+                  )
+                ) : (
+                  <div className="project-modal__empty">
+                    <span>
+                      Aucune capture disponible
+                    </span>
+                  </div>
+                )}
+
+                <div className="project-modal__image-overlay" />
+
+                {/* COUNTER */}
+
+                {selectedImages.length > 0 && (
+                  <div className="project-modal__counter">
+                    <span>
+                      {String(
+                        selectedImageIndex + 1
+                      ).padStart(2, '0')}
+                    </span>
+
+                    <span className="project-modal__counter-line" />
+
+                    <span>
+                      {String(
+                        selectedImages.length
+                      ).padStart(2, '0')}
+                    </span>
+                  </div>
+                )}
+
+                {/* ARROWS */}
+
+                {selectedImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="project-modal__nav project-modal__nav--prev"
+                      onClick={previousImage}
+                      aria-label="Image précédente"
+                    >
+                      <ArrowLeft />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="project-modal__nav project-modal__nav--next"
+                      onClick={nextImage}
+                      aria-label="Image suivante"
+                    >
+                      <ArrowRight />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* DOTS */}
+
+              {selectedImages.length > 1 && (
+                <div className="project-modal__dots">
+                  {selectedImages.map(
                     (_, index) => (
-                      <span
+                      <button
                         key={index}
+                        type="button"
                         className={
                           index ===
-                          previewImageIndex
+                          selectedImageIndex
                             ? 'is-active'
                             : ''
                         }
+                        onClick={() =>
+                          setSelectedImageIndex(
+                            index
+                          )
+                        }
+                        aria-label={`Afficher la capture ${index + 1}`}
                       />
                     )
                   )}
                 </div>
               )}
-
-              <span className="projects__preview-zoom">
-                +
-              </span>
             </div>
-          </div>
 
-          {/* =================================
-              LISTE DES PROJETS
-          ================================= */}
+            {/* RIGHT : INFORMATION */}
 
-          <div className="projects__list">
+            <div className="project-modal__info">
 
-            {projects.map(
-              (project, index) => {
-                const currentProject =
-                  project as Project
-
-                const isActive =
-                  hoveredIndex === index
-
-                return (
-                  <article
-                    key={project.id}
-                    className={`project-item ${
-                      isActive
-                        ? 'project-item--active'
-                        : ''
-                    }`}
-                    onMouseEnter={() =>
-                      handleProjectEnter(index)
-                    }
-                    onMouseLeave={
-                      handleProjectLeave
-                    }
-                    onClick={() => {
-                      if (
-                        currentProject.images
-                          ?.length
-                      ) {
-                        setHoveredIndex(index)
-                        setPreviewImageIndex(0)
-                        setPreviewOpen(true)
-                      }
-                    }}
-                  >
-                    <div className="project-item__line" />
-
-                    <div className="project-item__content">
-
-                      {/* NUMÉRO */}
-
-                      <div className="project-item__number">
-                        {String(index + 1).padStart(
-                          2,
-                          '0'
-                        )}
-                      </div>
-
-                      {/* INFORMATIONS */}
-
-                      <div className="project-item__main">
-
-                        <div className="project-item__title-row">
-
-                          <h3 className="project-item__title">
-                            <span>
-                              {project.title}
-                            </span>
-                          </h3>
-
-                          <ArrowUpRight
-                            className="project-item__arrow"
-                          />
-                        </div>
-
-                        <p className="project-item__description">
-                          {project.description}
-                        </p>
-
-                        {currentProject.tags &&
-                          currentProject.tags
-                            .length > 0 && (
-                            <div className="project-item__tags">
-                              {currentProject.tags.map(
-                                (tag) => (
-                                  <span
-                                    key={tag}
-                                  >
-                                    {tag}
-                                  </span>
-                                )
-                              )}
-                            </div>
-                          )}
-                      </div>
-
-                      {/* ANNÉE */}
-
-                      <div className="project-item__year">
-                        {currentProject.year ??
-                          '2026'}
-                      </div>
-
-                      {/* FLÈCHE */}
-
-                      <div className="project-item__action">
-                        <ArrowUpRight />
-                      </div>
-                    </div>
-                  </article>
-                )
-              }
-            )}
-
-            <div className="projects__bottom-line" />
-          </div>
-
-          {/* =================================
-              INDICATION
-          ================================= */}
-
-          <div className="projects__hint">
-            <span className="projects__hint-dot" />
-            Survolez un projet pour découvrir
-            les captures
-          </div>
-        </div>
-      </section>
-
-      {/* =================================
-          LIGHTBOX
-      ================================= */}
-
-      {previewOpen &&
-        activeImage && (
-          <div
-            className="project-lightbox"
-            onClick={() =>
-              setPreviewOpen(false)
-            }
-          >
-            <div
-              className="project-lightbox__content"
-              onClick={(event) =>
-                event.stopPropagation()
-              }
-            >
-              <button
-                type="button"
-                className="project-lightbox__close"
-                onClick={() =>
-                  setPreviewOpen(false)
-                }
-                aria-label="Fermer"
-              >
-                ×
-              </button>
-
-              <img
-                src={activeImage}
-                alt={
-                  activeProject?.title ??
-                  'Projet'
-                }
-                className="project-lightbox__image"
-              />
-
-              <div className="project-lightbox__caption">
+              <div className="project-modal__eyebrow">
                 <span>
-                  {activeProject?.title}
+                  {String(
+                    (selectedIndex ?? 0) + 1
+                  ).padStart(2, '0')}
                 </span>
 
-                <small>
-                  Capture{' '}
-                  {previewImageIndex + 1}
-                  {' / '}
-                  {activeImages.length}
-                </small>
+                <span>Projet</span>
+
+                <span className="project-modal__year">
+                  {selectedProject.year ??
+                    '2026'}
+                </span>
               </div>
+
+              <h2 className="project-modal__title">
+                {selectedProject.title}
+              </h2>
+
+              <div className="project-modal__separator" />
+
+              <p className="project-modal__description">
+                {selectedProject.description}
+              </p>
+
+              {/* TECHNOLOGIES */}
+
+              {selectedProject.tags &&
+                selectedProject.tags.length >
+                  0 && (
+                  <div className="project-modal__technologies">
+                    <span className="project-modal__label">
+                      Technologies
+                    </span>
+
+                    <div className="project-modal__tags">
+                      {selectedProject.tags.map(
+                        (tag) => (
+                          <span key={tag}>
+                            {tag}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* SLIDESHOW STATUS */}
+
+              {selectedImages.length > 1 && (
+                <div className="project-modal__slideshow">
+                  <span className="project-modal__slideshow-dot" />
+
+                  Les captures défilent
+                  automatiquement
+                </div>
+              )}
+
+              {/* LINK */}
+
+              {selectedProject.link &&
+                selectedProject.link !== '#' && (
+                  <a
+                    href={selectedProject.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="project-modal__link"
+                  >
+                    Voir le projet
+                    <ArrowUpRight />
+                  </a>
+                )}
             </div>
           </div>
-        )}
+        </div>
+      )}
     </>
   )
 }

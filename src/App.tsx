@@ -16,7 +16,13 @@ export default function App() {
   const [introComplete, setIntroComplete] = useState(false)
 
   const [isDark, setIsDark] = useState(() => {
-    return localStorage.getItem('portfolio-theme') === 'dark'
+    const savedTheme = localStorage.getItem('portfolio-theme')
+
+    if (savedTheme) {
+      return savedTheme === 'dark'
+    }
+
+    return true
   })
 
   const handleIntroComplete = useCallback(() => {
