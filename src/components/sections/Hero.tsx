@@ -34,7 +34,7 @@ export default function Hero() {
             Me contacter ✦
           </a>
 <a
-  href="/CV_Fiderana.pdf"
+  href="/CV_Fiderana2.pdf"
   target="_blank"
   rel="noopener noreferrer"
   className="hero__btn hero__btn--cv"
